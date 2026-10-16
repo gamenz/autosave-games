@@ -4,20 +4,29 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
 
-func TestAnyRunning(t *testing.T) {
-	names := map[string]bool{"eldenring.exe": true}
-	if !AnyRunning(names, []string{"EldenRing.exe"}) {
-		t.Error("case-insensitive match failed")
+func TestSnapshotRunning(t *testing.T) {
+	s := Snapshot{Names: map[string]bool{"eldenring.exe": true},
+		Paths: []string{`d:\steam\steamapps\common\elden ring\game\eldenring.exe`}}
+	cases := []struct {
+		procs []string
+		dir   string
+		want  bool
+	}{
+		{[]string{"EldenRing.exe"}, "", true},
+		{nil, `D:\Steam\steamapps\common\ELDEN RING`, true},
+		{nil, `D:\Steam\steamapps\common\ELDEN`, false},
+		{[]string{"hk.exe"}, `D:\Steam\steamapps\common\Hollow Knight`, false},
+		{nil, "", false},
 	}
-	if !AnyRunning(names, []string{"start_protected_game.exe", "eldenring.exe"}) {
-		t.Error("second process should match")
-	}
-	if AnyRunning(names, []string{"hk.exe"}) {
-		t.Error("hk.exe should not match")
+	for _, tc := range cases {
+		if got := s.Running(tc.procs, tc.dir); got != tc.want {
+			t.Errorf("Running(%v, %q) = %v, want %v", tc.procs, tc.dir, got, tc.want)
+		}
 	}
 }
 
@@ -26,25 +35,42 @@ func TestSystemListerSeesSelf(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	names, err := NewSystemLister().Names()
+	snap, err := NewSystemLister().Snapshot()
 	if err != nil {
-		t.Fatalf("Names: %v", err)
+		t.Fatalf("Snapshot: %v", err)
 	}
-	if self := strings.ToLower(filepath.Base(exe)); !names[self] {
-		t.Errorf("own process %q not listed (%d names)", self, len(names))
+	if self := strings.ToLower(filepath.Base(exe)); !snap.Names[self] {
+		t.Errorf("own process %q not in names", self)
+	}
+	if !slices.Contains(snap.Paths, strings.ToLower(exe)) {
+		t.Errorf("own path %q not in %d paths", exe, len(snap.Paths))
 	}
 }
 
 func TestFake(t *testing.T) {
 	f := NewFake()
 	f.SetRunning("Game.exe")
-	names, err := f.Names()
-	if err != nil || !names["game.exe"] {
-		t.Fatalf("Names = %v, %v", names, err)
+	snap, err := f.Snapshot()
+	if err != nil || !snap.Names["game.exe"] || len(snap.Paths) != 0 {
+		t.Fatalf("Snapshot = %+v, %v", snap, err)
+	}
+	f.SetRunningPaths(`D:\G\X.exe`)
+	snap, _ = f.Snapshot()
+	if !slices.Equal(snap.Paths, []string{`d:\g\x.exe`}) || !snap.Names["x.exe"] {
+		t.Fatalf("Snapshot after paths = %+v", snap)
 	}
 	want := errors.New("boom")
 	f.SetErr(want)
-	if _, err := f.Names(); !errors.Is(err, want) {
+	if _, err := f.Snapshot(); !errors.Is(err, want) {
 		t.Errorf("err = %v, want %v", err, want)
+	}
+}
+
+func BenchmarkSystemSnapshot(b *testing.B) {
+	l := NewSystemLister()
+	for i := 0; i < b.N; i++ {
+		if _, err := l.Snapshot(); err != nil {
+			b.Fatal(err)
+		}
 	}
 }

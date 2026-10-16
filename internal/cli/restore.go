@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"autosave-games/internal/backup"
-	"autosave-games/internal/process"
 )
 
 func (c *command) restore(args []string) int {
@@ -23,11 +22,11 @@ func (c *command) restore(args []string) int {
 	if code != exitOK {
 		return code
 	}
-	names, err := c.env.Lister.Names()
+	snap, err := c.env.Lister.Snapshot()
 	if err != nil {
 		return c.failf(exitFailure, "cannot check running processes: %v", err)
 	}
-	if process.AnyRunning(names, g.Processes) {
+	if snap.Running(g.Processes, g.InstallDir) {
 		return c.failf(exitFailure, "%q is running; close it first", g.Name)
 	}
 	svc := c.service(cfg)

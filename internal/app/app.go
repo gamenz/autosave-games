@@ -66,11 +66,11 @@ func New(d Deps) (*App, error) {
 		runners: map[string]*runner{},
 	}
 	a.watcher.Changed()
-	names, err := d.Lister.Names()
+	snap, err := d.Lister.Snapshot()
 	if err != nil {
 		d.Log.Warn("list processes", "err", err)
 	}
-	a.applyConfig(cfg, names)
+	a.applyConfig(cfg, snap)
 	return a, nil
 }
 
@@ -79,9 +79,9 @@ func (a *App) Tick() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.drainDone()
-	names, listErr := a.deps.Lister.Names()
+	snap, listErr := a.deps.Lister.Snapshot()
 	if a.watcher.Changed() {
-		a.reloadLocked(names)
+		a.reloadLocked(snap)
 	}
 	if listErr != nil {
 		// A failed listing must not look like "game exited".
@@ -90,7 +90,7 @@ func (a *App) Tick() {
 	}
 	now := a.deps.Now()
 	for slug, r := range a.runners {
-		a.stepRunner(r, names, now)
+		a.stepRunner(r, snap, now)
 		a.dropIfFinished(slug, r)
 	}
 }
@@ -170,25 +170,25 @@ func (a *App) BackupNow(slug string) {
 
 // ReloadConfig re-reads the config file now.
 func (a *App) ReloadConfig() {
-	names, _ := a.deps.Lister.Names()
+	snap, _ := a.deps.Lister.Snapshot()
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	a.reloadLocked(names)
+	a.reloadLocked(snap)
 }
 
-func (a *App) reloadLocked(names map[string]bool) {
+func (a *App) reloadLocked(snap process.Snapshot) {
 	cfg, err := config.Load(a.deps.ConfigPath)
 	if err != nil {
 		a.deps.Notifier.Error("Config error", err.Error())
 		return
 	}
-	a.applyConfig(cfg, names)
+	a.applyConfig(cfg, snap)
 	a.deps.Log.Info("config reloaded", "games", len(cfg.Games))
 }
 
 // applyConfig adds runners for new games, updates existing ones in place
 // and marks missing ones removed so their session can finish.
-func (a *App) applyConfig(cfg *config.Config, names map[string]bool) {
+func (a *App) applyConfig(cfg *config.Config, snap process.Snapshot) {
 	seen := map[string]bool{}
 	for _, g := range cfg.Games {
 		seen[g.Slug] = true
@@ -197,7 +197,7 @@ func (a *App) applyConfig(cfg *config.Config, names map[string]bool) {
 			continue
 		}
 		settle := time.Duration(g.SettleSeconds) * time.Second
-		a.runners[g.Slug] = &runner{game: g, machine: session.NewMachine(settle, process.AnyRunning(names, g.Processes))}
+		a.runners[g.Slug] = &runner{game: g, machine: session.NewMachine(settle, snap.Running(g.Processes, g.InstallDir))}
 	}
 	for slug, r := range a.runners {
 		if !seen[slug] {

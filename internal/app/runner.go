@@ -30,8 +30,8 @@ type doneMsg struct {
 	err    error
 }
 
-func (a *App) stepRunner(r *runner, names map[string]bool, now time.Time) {
-	running := process.AnyRunning(names, r.game.Processes)
+func (a *App) stepRunner(r *runner, snap process.Snapshot, now time.Time) {
+	running := snap.Running(r.game.Processes, r.game.InstallDir)
 	stable := false
 	if r.machine.State() == session.WaitingStable && now.Sub(r.lastCheck) >= session.StableInterval {
 		cur, err := session.StatFiles(a.service.Files(r.game))

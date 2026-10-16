@@ -12,19 +12,20 @@ type systemLister struct{}
 // NewSystemLister lists real processes via gopsutil.
 func NewSystemLister() Lister { return systemLister{} }
 
-func (systemLister) Names() (map[string]bool, error) {
+func (systemLister) Snapshot() (Snapshot, error) {
 	procs, err := process.Processes()
 	if err != nil {
-		return nil, fmt.Errorf("list processes: %w", err)
+		return Snapshot{}, fmt.Errorf("list processes: %w", err)
 	}
-	names := make(map[string]bool, len(procs))
+	snap := Snapshot{Names: make(map[string]bool, len(procs))}
 	for _, p := range procs {
-		// Processes may exit or deny access between listing and Name().
-		name, err := p.Name()
-		if err != nil || name == "" {
-			continue
+		// Processes may exit or deny access between listing and these calls.
+		if name, err := p.Name(); err == nil && name != "" {
+			snap.Names[strings.ToLower(name)] = true
 		}
-		names[strings.ToLower(name)] = true
+		if exe, err := p.Exe(); err == nil && exe != "" {
+			snap.Paths = append(snap.Paths, strings.ToLower(exe))
+		}
 	}
-	return names, nil
+	return snap, nil
 }
