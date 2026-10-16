@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	"autosave-games/internal/appdir"
 )
 
 // Parse decodes YAML, applies defaults, expands paths and fills slugs.
@@ -49,9 +51,9 @@ func Load(path string) (*Config, error) {
 	return c, nil
 }
 
-// DefaultPath is %APPDATA%\autosave-games\games.yaml.
+// DefaultPath is games.yaml next to the running executable.
 func DefaultPath() string {
-	return filepath.Join(os.Getenv("APPDATA"), "autosave-games", "games.yaml")
+	return filepath.Join(appdir.Dir(), "games.yaml")
 }
 
 func applyDefaults(c *Config) {

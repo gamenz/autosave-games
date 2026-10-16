@@ -18,12 +18,13 @@ powershell -NoProfile -File scripts\build.ps1
 ```
 
 Produces `bin\autosave.exe` (CLI) and `bin\autosave-tray.exe` (tray, no console).
-Keep both files in the same folder.
+Keep both files in the same folder. The app is portable: its config and log
+files live in that folder too, so it must be writable (not `C:\Program Files`).
 
 ## Run
 
-1. Start `bin\autosave-tray.exe`. On first run it writes an example config to
-   `%APPDATA%\autosave-games\games.yaml` and shows a notification.
+1. Start `bin\autosave-tray.exe`. On first run it writes an example config
+   `games.yaml` next to the exe and shows a notification.
 2. Tray menu → **Edit config**, add your games, save. The file is reloaded
    automatically (or use **Reload config**).
 3. Optional: start with Windows — `bin\autosave.exe autostart on`
@@ -76,8 +77,8 @@ Files that are not in the archive are left untouched.
 
 | What | Where |
 |---|---|
-| Config | `%APPDATA%\autosave-games\games.yaml` |
-| Log | `%LOCALAPPDATA%\autosave-games\logs\autosave.log` (5 MB × 3) |
+| Config | `games.yaml` next to the exe |
+| Log | `autosave.log` next to the exe (5 MB, plus up to 3 rotated `autosave-<time>.log`) |
 | Backups | `<backup_root>\<game-slug>\` |
 
 ## Development

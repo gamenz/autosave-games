@@ -33,9 +33,11 @@ Provide a CLI to list and restore backups.
 
 ## 3. Configuration
 
-Default location: `%APPDATA%\autosave-games\games.yaml`, overridable with
-`--config <path>`. On first run, if missing, the app writes a commented
-example file there and notifies the user.
+Default location (portable): `games.yaml` in the folder of the running
+executable, shared by `autosave.exe` and `autosave-tray.exe`; the CLI can
+override it with `--config <path>`. On first run, if missing, the app writes a
+commented example file there and notifies the user. Configs in older
+locations are not migrated.
 
 ```yaml
 backup_root: "D:/GameBackups"
@@ -170,8 +172,8 @@ Binary `autosave-tray.exe` (GUI subsystem, no console window).
 
 ## 8. Logging
 
-`%LOCALAPPDATA%\autosave-games\logs\autosave.log`, structured text (`log/slog`),
-rotated at 5 MB, keep 3 files. Both binaries log there. Every session
+`autosave.log` in the folder of the running executable, structured text
+(`log/slog`), rotated at 5 MB, keep 3 files. Both binaries log there. Every session
 state change is logged as `msg="session state" game=… from=… to=…` (plus
 `stable=true|false` on entering BackingUp, false meaning the 60 s timeout).
 

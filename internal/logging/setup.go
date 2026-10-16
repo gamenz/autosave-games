@@ -9,15 +9,15 @@ import (
 	"path/filepath"
 
 	"gopkg.in/natefinch/lumberjack.v2"
+
+	"autosave-games/internal/appdir"
 )
 
 // FileName is the active log file name inside the log directory.
 const FileName = "autosave.log"
 
-// DefaultDir is %LOCALAPPDATA%\autosave-games\logs.
-func DefaultDir() string {
-	return filepath.Join(os.Getenv("LOCALAPPDATA"), "autosave-games", "logs")
-}
+// DefaultDir is the folder of the running executable.
+func DefaultDir() string { return appdir.Dir() }
 
 // Setup returns a text logger writing to dir\autosave.log, rotated at 5 MB
 // with 3 old files kept. Close the returned Closer on exit.

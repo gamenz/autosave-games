@@ -5,7 +5,15 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"autosave-games/internal/appdir"
 )
+
+func TestDefaultDirIsExecutableFolder(t *testing.T) {
+	if got, want := DefaultDir(), appdir.Dir(); got != want {
+		t.Errorf("DefaultDir() = %q, want %q", got, want)
+	}
+}
 
 func TestSetupWritesFile(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "logs")

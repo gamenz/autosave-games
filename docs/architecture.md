@@ -15,6 +15,7 @@ Spec: [specs/2026-10-17-autosave-games-mvp.md](specs/2026-10-17-autosave-games-m
 | `internal/backup` | Collect → hash → zip (tmp + rename) → prune; lock; list; restore |
 | `internal/notify` | Level-filtered notifications (toast) + logging of every event |
 | `internal/logging` | slog text handler on a rotating file |
+| `internal/appdir` | Folder of the running exe: home of `games.yaml` and `autosave.log` (portable) |
 | `internal/app` | Watcher loop: ticks, runners, worker goroutines, hot reload |
 | `internal/cli` | Subcommands `list`, `backup`, `restore`, `validate`, `autostart` |
 | `internal/autostart` | `HKCU\...\Run` value |
