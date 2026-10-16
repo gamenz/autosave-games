@@ -19,7 +19,8 @@ type RestoreTarget struct {
 }
 
 // FindArchive picks the newest archive in dir, or the single archive whose
-// name starts with atPrefix.
+// name starts with atPrefix. Without a prefix, prerestore archives are
+// skipped so a repeated restore never brings back the state it replaced.
 func FindArchive(dir, atPrefix string) (ArchiveInfo, error) {
 	archives, err := List(dir)
 	if err != nil {
@@ -27,6 +28,9 @@ func FindArchive(dir, atPrefix string) (ArchiveInfo, error) {
 	}
 	var matches []ArchiveInfo
 	for _, a := range archives {
+		if atPrefix == "" && a.Kind == KindPreRestore {
+			continue
+		}
 		if strings.HasPrefix(a.Name, atPrefix) {
 			matches = append(matches, a)
 		}

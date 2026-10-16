@@ -105,7 +105,9 @@ func TestFindArchive(t *testing.T) {
 		{"2026-10-17_21", "2026-10-17_21-30-05_pre.zip", ""},
 		{"2026-10-17", "", "ambiguous"},
 		{"2025", "", "no archive matches"},
+		{"2026-10-17_23", "2026-10-17_23-00-00_prerestore.zip", ""},
 	}
+	writeFile(t, filepath.Join(dir, "2026-10-17_23-00-00_prerestore.zip"), "")
 	for _, tc := range cases {
 		got, err := FindArchive(dir, tc.prefix)
 		if tc.wantErr != "" {
