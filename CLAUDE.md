@@ -33,3 +33,13 @@ Split by responsibility before hitting the hard limit. No `utils/` or
 
 - Code identifiers and comments in English. LF line endings.
 - Tests live next to code (`foo.go` + `foo_test.go`).
+- Tests and verification scripts MUST NOT pop up terminal/console windows:
+  helper executables are built with `-ldflags "-H windowsgui"` and started
+  with `-WindowStyle Hidden`; child processes use `HideWindow`/`CREATE_NO_WINDOW`.
+
+## Commands
+
+- Build: `powershell -NoProfile -File scripts/build.ps1` → `bin/`
+- Check: `go vet ./...`, `go test ./...`,
+  `powershell -NoProfile -File scripts/check-file-length.ps1`
+- Registry test (writes a test value under HKCU Run): `AUTOSAVE_REGISTRY_TEST=1 go test ./internal/autostart/`

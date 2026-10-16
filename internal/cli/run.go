@@ -2,7 +2,6 @@
 package cli
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -127,10 +126,4 @@ func parseInterspersed(fs *flag.FlagSet, args []string) ([]string, error) {
 		positional = append(positional, fs.Arg(0))
 		args = fs.Args()[1:]
 	}
-}
-
-var errNotImplemented = errors.New("not implemented")
-
-func (c *command) autostart(args []string) int {
-	return c.failf(exitFailure, "autostart: %v", errNotImplemented)
 }
