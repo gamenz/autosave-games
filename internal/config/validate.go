@@ -57,8 +57,8 @@ func validateGame(errs *errorList, label string, g Game, root string, names, slu
 		}
 		slugs[g.Slug] = true
 	}
-	if len(g.Processes) == 0 {
-		errs.add("%s: processes: at least one required", label)
+	if len(g.Processes) == 0 && strings.TrimSpace(g.InstallDir) == "" {
+		errs.add("%s: processes or install_dir: at least one required", label)
 	}
 	if len(g.Saves) == 0 {
 		errs.add("%s: saves: at least one required", label)

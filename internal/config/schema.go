@@ -45,6 +45,8 @@ type Game struct {
 	Processes     []string `yaml:"processes"`
 	Saves         []string `yaml:"saves"`
 	Exclude       []string `yaml:"exclude"`
+	SteamAppID    int      `yaml:"steam_appid"`
+	InstallDir    string   `yaml:"install_dir"` // expanded; any exe inside counts as running
 	KeepLast      int      `yaml:"keep_last"`
 	SettleSeconds int      `yaml:"settle_seconds"`
 }

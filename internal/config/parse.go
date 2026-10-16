@@ -31,6 +31,9 @@ func Parse(data []byte, env EnvFunc) (*Config, error) {
 		for j, s := range g.Saves {
 			g.Saves[j] = ExpandPath(s, env)
 		}
+		if strings.TrimSpace(g.InstallDir) != "" {
+			g.InstallDir = ExpandPath(g.InstallDir, env)
+		}
 	}
 	return &c, nil
 }

@@ -55,3 +55,19 @@ func TestFindGame(t *testing.T) {
 		t.Error("FindGame(zelda) should not match")
 	}
 }
+
+func TestParseSteamFields(t *testing.T) {
+	c, err := Parse([]byte(`backup_root: r
+games:
+  - {name: ER, steam_appid: 1245620, install_dir: '~/Steam/ER', saves: [x]}`), testEnv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := c.Games[0]
+	if g.SteamAppID != 1245620 || g.InstallDir != `C:\Users\A\Steam\ER` {
+		t.Fatalf("game = %+v", g)
+	}
+	if err := Validate(c); err != nil {
+		t.Errorf("install_dir without processes should be valid: %v", err)
+	}
+}

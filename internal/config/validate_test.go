@@ -10,7 +10,7 @@ const rootLine = "backup_root: r\n"
 var validateCases = []struct{ name, yaml, wantErr string }{
 	{"no root", `games: [{name: A, processes: [a.exe], saves: [x]}]`, "backup_root: required"},
 	{"no name", rootLine + `games: [{processes: [a.exe], saves: [x]}]`, "game #1: name: required"},
-	{"no process", rootLine + `games: [{name: A, saves: [x]}]`, `game "A": processes: at least one required`},
+	{"no process", rootLine + `games: [{name: A, saves: [x]}]`, `game "A": processes or install_dir: at least one required`},
 	{"no saves", rootLine + `games: [{name: A, processes: [a.exe]}]`, `game "A": saves: at least one required`},
 	{"dup name", rootLine + `games: [{name: A, processes: [a.exe], saves: [x]}, {name: a, processes: [b.exe], saves: [y]}]`, `game "a": duplicate name`},
 	{"dup slug", rootLine + `games: [{name: A B, processes: [a.exe], saves: [x]}, {name: a-b, processes: [b.exe], saves: [y]}]`, `duplicate slug "a-b"`},
@@ -53,7 +53,7 @@ games: [{name: A, saves: [x]}]`)
 	if err == nil {
 		t.Fatal("expected errors")
 	}
-	for _, want := range []string{"backup_root", "notify", "processes"} {
+	for _, want := range []string{"backup_root", "notify", "processes or install_dir"} {
 		if !strings.Contains(err.Error(), want) {
 			t.Errorf("error %q missing %q", err, want)
 		}
