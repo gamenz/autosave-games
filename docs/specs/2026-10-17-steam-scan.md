@@ -69,10 +69,11 @@ Deriving `saves` per app:
 - **root 0** → one glob entry covering every account:
   `<steam root>\userdata\*\<appid>\remote`.
 - **other roots**, per root: take the directory of every listed file across
-  all accounts, compute their common directory, then strip trailing segments
-  that look like a Steam ID (`7656119` + 10 digits) or equal a `userdata`
-  account folder name. Example: `EldenRing/76561199478888042/ER0000.sl2`
-  from two accounts → `%APPDATA%/EldenRing`.
+  all accounts, compute their common directory, then cut it at the first
+  segment that looks like a Steam ID (`7656119` + 10 digits) or equals a
+  `userdata` account folder name. Example: `EldenRing/76561199478888042/ER0000.sl2`
+  from two accounts → `%APPDATA%/EldenRing`;
+  `KoeiTecmo/FatalFrameII/Savedata/<account>/SLOT00/…` → `…/Savedata`.
 - **Safety:** if the result would be the root base itself (files directly in
   `%APPDATA%`, `%LOCALAPPDATA%`, Documents or the install dir), list each
   file individually instead of the folder.
