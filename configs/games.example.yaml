@@ -1,0 +1,35 @@
+# autosave-games configuration.
+# Paths accept %VAR% (e.g. %APPDATA%, %USERPROFILE%) and a leading "~".
+# Use forward slashes or single quotes: inside double quotes YAML treats "\" as an escape.
+
+# Where archives are written: <backup_root>/<game-slug>/<time>_<kind>.zip
+# Tip: point this at a OneDrive / Google Drive folder for free cloud sync.
+backup_root: "%USERPROFILE%/GameBackups"
+
+# Seconds between process checks.
+poll_seconds: 3
+
+# Desktop notifications: all | errors | none (write failures are always shown).
+notify: errors
+
+defaults:
+  keep_last: 20       # archives kept per game (prerestore archives are never pruned)
+  settle_seconds: 15  # how long the game must stay closed before the post backup
+
+games: []
+# Uncomment and adapt the examples below (remove "games: []" above).
+#
+# games:
+#   - name: Elden Ring
+#     processes: [eldenring.exe]          # any of these running = game running
+#     saves: ["%APPDATA%/EldenRing"]      # folders are backed up recursively
+#
+#   - name: Hollow Knight
+#     processes: [hollow_knight.exe]
+#     saves: ["%USERPROFILE%/AppData/LocalLow/Team Cherry/Hollow Knight/user*.dat"]
+#     exclude: ["*.bak"]                  # matched against relative path or file name
+#     keep_last: 50                       # per-game override
+#
+#   - name: Notepad test                  # handy for trying the app out
+#     processes: [notepad.exe]
+#     saves: ["~/autosave-test"]
