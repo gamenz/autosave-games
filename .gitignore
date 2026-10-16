@@ -5,6 +5,7 @@ docs/plans/
 /bin/
 /dist/
 *.exe
+*.syso
 
 # Local config (copy from configs/games.example.yaml)
 /games.yaml

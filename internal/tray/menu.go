@@ -43,7 +43,7 @@ func Run(a *app.App, opts Options) {
 
 func (m *menu) onReady() {
 	systray.SetIcon(iconData)
-	systray.SetTooltip("autosave-games")
+	systray.SetTooltip("Autosave Games")
 	m.status = systray.AddMenuItem("Starting…", "")
 	m.status.Disable()
 	systray.AddSeparator()
