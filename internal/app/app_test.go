@@ -21,6 +21,7 @@ type harness struct {
 	app              *App
 	fake             *process.Fake
 	rec              *notify.RecordingSender
+	logs             *syncBuffer
 	now              time.Time
 	saves, root, cfg string
 }
@@ -46,7 +47,7 @@ func gameYAML(name, exe, saves string) string {
 // newHarness builds an App over temp dirs; root "" means a fresh temp dir.
 func newHarness(t *testing.T, root string, setup func(*harness)) *harness {
 	t.Helper()
-	h := &harness{fake: process.NewFake(), rec: &notify.RecordingSender{},
+	h := &harness{fake: process.NewFake(), rec: &notify.RecordingSender{}, logs: &syncBuffer{},
 		now: time.Date(2026, 10, 17, 20, 0, 0, 0, time.Local), saves: t.TempDir(), root: root}
 	if h.root == "" {
 		h.root = t.TempDir()
@@ -57,7 +58,7 @@ func newHarness(t *testing.T, root string, setup func(*harness)) *harness {
 	if setup != nil {
 		setup(h)
 	}
-	log := slog.New(slog.DiscardHandler)
+	log := slog.New(slog.NewTextHandler(h.logs, nil))
 	a, err := New(Deps{ConfigPath: h.cfg, Lister: h.fake, Notifier: notify.NewNotifier("all", h.rec, log),
 		Log: log, Now: func() time.Time { return h.now }, AppVersion: "test"})
 	if err != nil {

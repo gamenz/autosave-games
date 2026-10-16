@@ -14,7 +14,7 @@ notify: errors
 
 defaults:
   keep_last: 20       # archives kept per game (prerestore archives are never pruned)
-  settle_seconds: 15  # how long the game must stay closed before the post backup
+  settle_seconds: 5   # how long the game must stay closed before the post backup
 
 games: []
 # Uncomment and adapt the examples below (remove "games: []" above).

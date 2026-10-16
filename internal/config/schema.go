@@ -16,7 +16,7 @@ const (
 const (
 	DefaultPollSeconds   = 3
 	DefaultKeepLast      = 20
-	DefaultSettleSeconds = 15
+	DefaultSettleSeconds = 5
 	DefaultNotify        = NotifyErrors
 )
 

@@ -21,7 +21,7 @@ func TestParseDefaultsAndOverrides(t *testing.T) {
 		t.Errorf("BackupRoot = %q", c.BackupRoot)
 	}
 	g := c.Games[0]
-	if g.Slug != "elden-ring" || g.KeepLast != 20 || g.SettleSeconds != 15 {
+	if g.Slug != "elden-ring" || g.KeepLast != 20 || g.SettleSeconds != 5 {
 		t.Errorf("game 0 = %+v", g)
 	}
 	if g.Saves[0] != `C:\Users\A\AppData\Roaming\EldenRing` {

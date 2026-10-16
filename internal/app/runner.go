@@ -40,7 +40,16 @@ func (a *App) stepRunner(r *runner, names map[string]bool, now time.Time) {
 		}
 		r.prevStat, r.lastCheck = cur, now
 	}
-	switch r.machine.Step(session.Input{Now: now, Running: running, Stable: stable}) {
+	before := r.machine.State()
+	action := r.machine.Step(session.Input{Now: now, Running: running, Stable: stable})
+	if after := r.machine.State(); after != before {
+		attrs := []any{"game", r.game.Name, "from", before.String(), "to", after.String()}
+		if after == session.BackingUp {
+			attrs = append(attrs, "stable", stable)
+		}
+		a.deps.Log.Info("session state", attrs...)
+	}
+	switch action {
 	case session.SnapshotPre:
 		a.startBackup(r, backup.KindPre)
 	case session.BackupPost:
@@ -81,6 +90,8 @@ func (a *App) handleDone(m doneMsg) {
 		r.busy--
 		if m.kind == backup.KindPost {
 			r.machine.BackupDone()
+			a.deps.Log.Info("session state", "game", m.name,
+				"from", session.BackingUp.String(), "to", r.machine.State().String())
 		}
 		a.dropIfFinished(m.slug, r)
 	}

@@ -25,7 +25,7 @@ Provide a CLI to list and restore backups.
 | Language | Go, two binaries from one codebase (see §9) |
 | Run mode | User-session tray app, autostart via `HKCU\...\Run` |
 | Process detection | Poll process list every `poll_seconds` (default 3) |
-| "Fully exited" | No matching process for `settle_seconds` (default 15) + save files stable |
+| "Fully exited" | No matching process for `settle_seconds` (default 5) + save files stable |
 | Archive | One `.zip` per backup, written to `.tmp` then renamed |
 | Dedup | Skip backup when content hash equals the latest backup's hash |
 | Retention | Keep newest `keep_last` (default 20) per game |
@@ -43,7 +43,7 @@ poll_seconds: 3
 notify: errors            # all | errors | none
 defaults:
   keep_last: 20
-  settle_seconds: 15
+  settle_seconds: 5
 games:
   - name: Elden Ring
     processes: [eldenring.exe]
@@ -171,7 +171,9 @@ Binary `autosave-tray.exe` (GUI subsystem, no console window).
 ## 8. Logging
 
 `%LOCALAPPDATA%\autosave-games\logs\autosave.log`, structured text (`log/slog`),
-rotated at 5 MB, keep 3 files. Both binaries log there.
+rotated at 5 MB, keep 3 files. Both binaries log there. Every session
+state change is logged as `msg="session state" game=… from=… to=…` (plus
+`stable=true|false` on entering BackingUp, false meaning the 60 s timeout).
 
 ## 9. Project layout
 

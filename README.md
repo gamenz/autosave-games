@@ -37,7 +37,7 @@ poll_seconds: 3
 notify: errors                  # all | errors | none (write failures always show)
 defaults:
   keep_last: 20                 # per game; prerestore archives are never pruned
-  settle_seconds: 15            # game must stay closed this long before the post backup
+  settle_seconds: 5             # game must stay closed this long before the post backup
 games:
   - name: Elden Ring
     processes: [eldenring.exe]  # any of these running = game running
