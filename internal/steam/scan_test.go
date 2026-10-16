@@ -101,3 +101,25 @@ func TestScanMissingRoot(t *testing.T) {
 		t.Fatalf("Scan = %+v, %v", res, err)
 	}
 }
+
+func TestScanDropsSharedExeNames(t *testing.T) {
+	root := t.TempDir()
+	common := filepath.Join(root, "steamapps", "common")
+	for _, g := range []struct {
+		id        int
+		name, dir string
+		exe       string
+	}{{1, "One", "One", "one.exe"}, {2, "Two", "Two", "two.exe"}} {
+		writeFile(t, filepath.Join(root, "steamapps", fmt.Sprintf("appmanifest_%d.acf", g.id)), acf(g.id, g.name, g.dir))
+		writeFile(t, filepath.Join(common, g.dir, g.exe), "")
+		writeFile(t, filepath.Join(common, g.dir, "helper.exe"), "")
+		writeFile(t, filepath.Join(common, g.dir, "InstallerMessage.exe"), "")
+	}
+	res, err := Scan(root)
+	if err != nil || len(res.Found) != 2 {
+		t.Fatalf("Scan = %+v, %v", res, err)
+	}
+	if !slices.Equal(res.Found[0].Processes, []string{"one.exe"}) || !slices.Equal(res.Found[1].Processes, []string{"two.exe"}) {
+		t.Errorf("processes = %v / %v, want shared helper.exe and installer dropped", res.Found[0].Processes, res.Found[1].Processes)
+	}
+}

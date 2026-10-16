@@ -60,6 +60,7 @@ func main() {
 	tray.Run(a, tray.Options{
 		ConfigPath: cfgPath,
 		LogPath:    filepath.Join(logDir, logging.FileName),
+		Notifier:   n,
 		OnQuit: func() {
 			cancel()
 			<-stopped

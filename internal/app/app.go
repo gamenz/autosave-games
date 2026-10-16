@@ -24,6 +24,7 @@ type Deps struct {
 	Log        *slog.Logger
 	Now        func() time.Time
 	AppVersion string
+	SteamRoot  func() (string, error) // nil: steam.LocateRoot
 }
 
 // Status is a snapshot for the tray menu.

@@ -46,6 +46,12 @@ func (n *Notifier) Error(title, body string) {
 	n.send(n.currentLevel() != config.NotifyNone, title, body)
 }
 
+// Notice reports the result of a user action; always shown.
+func (n *Notifier) Notice(title, body string) {
+	n.log.Info(title, "detail", body)
+	n.send(true, title, body)
+}
+
 // Critical reports a failure that is always shown (e.g. a write error).
 func (n *Notifier) Critical(title, body string) {
 	n.log.Error(title, "detail", body)

@@ -17,6 +17,7 @@ const (
 var exeExcludes = []string{
 	"*setup*", "*redist*", "*prereq*", "vc_redist*", "dxsetup*", "dotnet*", "unins*",
 	"crashpad_handler*", "unitycrashhandler*", "*crashreport*", "*crashhandler*", "*bugreport*",
+	"installermessage*", "*service*", "*webview*", "*weblauncher*", "unrealcefsubprocess*", "crs-*", "tcping*",
 }
 
 type exeFile struct {

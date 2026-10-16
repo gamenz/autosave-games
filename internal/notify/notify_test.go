@@ -48,3 +48,12 @@ func TestSendFailureIsSwallowed(t *testing.T) {
 	n := NewNotifier(config.NotifyAll, failingSender{}, slog.New(slog.DiscardHandler))
 	n.Critical("c", "boom") // must not panic
 }
+
+func TestNoticeAlwaysSent(t *testing.T) {
+	rec := &RecordingSender{}
+	n := NewNotifier(config.NotifyNone, rec, slog.New(slog.DiscardHandler))
+	n.Notice("Steam scan", "added 1 games")
+	if got := rec.Messages(); !slices.Equal(got, []string{"Steam scan: added 1 games"}) {
+		t.Fatalf("messages = %v", got)
+	}
+}

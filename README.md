@@ -55,6 +55,27 @@ games:
 - Inside double quotes YAML treats `\` as an escape: use `/` or single quotes.
 - `backup_root` must not be inside a save folder (and vice versa).
 - Check a config and see the expanded paths: `autosave validate`.
+- Optional `install_dir`: the game counts as running while **any** exe inside
+  that folder runs (`processes` is then only a fallback). `steam_appid` is
+  set by the Steam scan to recognise the game later.
+
+## Steam scan
+
+Tray menu → **Scan Steam games** adds every installed Steam game that is not
+in the config yet:
+
+- name, `steam_appid`, `install_dir` and exe names come from Steam's
+  `libraryfolders.vdf` / `appmanifest_*.acf`;
+- save folders come from the Steam Cloud cache
+  (`userdata\<account>\<appid>\remotecache.vdf`, all accounts);
+- games without cloud data are appended **commented out** at the end of the
+  file: fill in `saves`, then remove the leading `# ` of their lines;
+- existing games are never changed (matched by appid, install dir or name);
+  scanning again adds nothing new;
+- the previous file is kept as `games.yaml.bak`. Comments are preserved, blank
+  lines and comment alignment may be normalised.
+
+A toast reports `added N games, M need save paths, K already configured`.
 
 ## CLI
 

@@ -80,6 +80,7 @@ func Scan(steamRoot string) (Result, error) {
 		}
 		res.Found = append(res.Found, found)
 	}
+	dropSharedNames(res.Found)
 	sort.Slice(res.Found, func(i, j int) bool {
 		return strings.ToLower(res.Found[i].Name) < strings.ToLower(res.Found[j].Name)
 	})
@@ -125,4 +126,25 @@ func buildGame(steamRoot string, group []Manifest, accounts []string) (Found, *S
 		}
 	}
 	return f, nil, warnings
+}
+
+// dropSharedNames removes exe names that occur in more than one game: a
+// shared helper (launcher, anti-cheat) would make every owner look running.
+// Detection by install_dir still covers those games.
+func dropSharedNames(found []Found) {
+	count := map[string]int{}
+	for _, f := range found {
+		for _, p := range f.Processes {
+			count[p]++
+		}
+	}
+	for i := range found {
+		kept := found[i].Processes[:0]
+		for _, p := range found[i].Processes {
+			if count[p] == 1 {
+				kept = append(kept, p)
+			}
+		}
+		found[i].Processes = kept
+	}
 }

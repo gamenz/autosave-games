@@ -9,8 +9,9 @@ Spec: [specs/2026-10-17-autosave-games-mvp.md](specs/2026-10-17-autosave-games-m
 | `cmd/autosave` | CLI entry: logging + `cli.Run` |
 | `cmd/autosave-tray` | Tray entry: single instance, `app.App` loop, tray menu |
 | `configs` | Embedded example `games.yaml` |
-| `internal/config` | Parse, defaults, `%VAR%`/`~` expansion, validation, save bases, file watcher |
-| `internal/process` | `Lister` (gopsutil) + `Fake` for tests |
+| `internal/config` | Parse, defaults, `%VAR%`/`~` expansion, validation, save bases, file watcher, comment-preserving `AddGames` |
+| `internal/process` | `Lister.Snapshot()` (exe names + paths, gopsutil) + `Fake`; running = name match or exe inside `install_dir` |
+| `internal/steam` | Steam root (registry), VDF parser, libraries/manifests, cloud-cache save folders, exe filter, `Scan` |
 | `internal/session` | Pure per-game state machine; save-file stability check |
 | `internal/backup` | Collect → hash → zip (tmp + rename) → prune; lock; list; restore |
 | `internal/notify` | Level-filtered notifications (toast) + logging of every event |
