@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -19,6 +20,13 @@ import (
 
 var version = "dev"
 
+// startResult is what start leaves for main once the tray has exited.
+type startResult struct {
+	log    *slog.Logger
+	closer io.Closer
+	failed bool
+}
+
 func main() {
 	release, already, err := tray.AcquireSingleInstance(tray.MutexName)
 	if err == nil && already {
@@ -29,15 +37,53 @@ func main() {
 	}
 
 	logDir := logging.DefaultDir()
+	cfgPath := config.DefaultPath()
+	done := make(chan startResult, 1)
+	// The tray message loop starts before any slow setup: Windows (and the
+	// Start menu, which stays open until then) sees the app as launched as
+	// soon as that loop runs.
+	tray.Run(tray.Options{
+		ConfigPath: cfgPath,
+		LogPath:    filepath.Join(logDir, logging.FileName),
+		Start: func() (tray.Started, bool) {
+			s, res := start(logDir, cfgPath)
+			done <- res
+			return s, !res.failed
+		},
+	})
+
+	var res startResult
+	select {
+	case res = <-done:
+	default:
+	}
+	if res.failed {
+		if res.closer != nil {
+			res.closer.Close()
+		}
+		os.Exit(1)
+	}
+	if res.log != nil {
+		res.log.Info("tray stopped")
+	}
+	if res.closer != nil {
+		res.closer.Close()
+	}
+}
+
+// start sets up logging and the watcher loop; it runs from the tray's
+// ready callback.
+func start(logDir, cfgPath string) (tray.Started, startResult) {
+	var res startResult
 	log, closer, err := logging.Setup(logDir)
 	if err != nil {
 		log = slog.New(slog.DiscardHandler)
 	} else {
-		defer closer.Close()
+		res.closer = closer
 	}
+	res.log = log
 	log.Info("tray starting", "version", version)
 
-	cfgPath := config.DefaultPath()
 	n := notify.NewNotifier(config.DefaultNotify, notify.ToastSender{}, log)
 	a, err := app.New(app.Deps{
 		ConfigPath: cfgPath, Lister: process.NewSystemLister(), Notifier: n,
@@ -45,10 +91,8 @@ func main() {
 	})
 	if err != nil {
 		n.Critical("autosave-games cannot start", "Fix "+cfgPath+": "+err.Error())
-		if closer != nil {
-			closer.Close()
-		}
-		os.Exit(1)
+		res.failed = true
+		return tray.Started{}, res
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -57,14 +101,9 @@ func main() {
 		a.Run(ctx)
 		close(stopped)
 	}()
-	tray.Run(a, tray.Options{
-		ConfigPath: cfgPath,
-		LogPath:    filepath.Join(logDir, logging.FileName),
-		Notifier:   n,
-		OnQuit: func() {
-			cancel()
-			<-stopped
-		},
-	})
-	log.Info("tray stopped")
+	onQuit := func() {
+		cancel()
+		<-stopped
+	}
+	return tray.Started{App: a, Notifier: n, OnQuit: onQuit}, res
 }

@@ -14,12 +14,20 @@ import (
 	"autosave-games/internal/notify"
 )
 
-// Options are the paths and callbacks the menu needs.
+// Options are the paths and the startup hook the menu needs.
 type Options struct {
 	ConfigPath string
 	LogPath    string
-	Notifier   *notify.Notifier // scan results (always shown)
-	OnQuit     func()           // stops the app loop; called before the tray exits
+	// Start runs once the tray message loop is up, so slow setup does not
+	// delay the moment Windows sees the app as launched. ok=false quits.
+	Start func() (s Started, ok bool)
+}
+
+// Started is what Start hands to the menu.
+type Started struct {
+	App      *app.App
+	Notifier *notify.Notifier // scan results (always shown)
+	OnQuit   func()           // stops the app loop; called before the tray exits
 }
 
 const refreshInterval = 2 * time.Second
@@ -27,6 +35,7 @@ const refreshInterval = 2 * time.Second
 type menu struct {
 	app       *app.App
 	opts      Options
+	started   Started
 	status    *systray.MenuItem
 	backupNow *systray.MenuItem
 	gameItems []*systray.MenuItem
@@ -35,9 +44,10 @@ type menu struct {
 	refreshMu sync.Mutex // refresh runs from the menu loop and scan goroutines
 }
 
-// Run shows the tray icon and blocks until Quit is chosen.
-func Run(a *app.App, opts Options) {
-	m := &menu{app: a, opts: opts}
+// Run shows the tray icon, then calls opts.Start; it blocks until Quit is
+// chosen or Start fails.
+func Run(opts Options) {
+	m := &menu{opts: opts}
 	systray.Run(m.onReady, nil)
 }
 
@@ -55,6 +65,13 @@ func (m *menu) onReady() {
 	openLog := systray.AddMenuItem("Open log", "")
 	systray.AddSeparator()
 	quit := systray.AddMenuItem("Quit", "Stop watching games")
+
+	started, ok := m.opts.Start()
+	if !ok {
+		systray.Quit()
+		return
+	}
+	m.started, m.app = started, started.App
 	m.refresh()
 
 	go func() {
@@ -79,8 +96,8 @@ func (m *menu) onReady() {
 			case <-openLog.ClickedCh:
 				exec.Command("notepad.exe", m.opts.LogPath).Start()
 			case <-quit.ClickedCh:
-				if m.opts.OnQuit != nil {
-					m.opts.OnQuit()
+				if m.started.OnQuit != nil {
+					m.started.OnQuit()
 				}
 				systray.Quit()
 				return
@@ -143,11 +160,11 @@ func waitClick(it *systray.MenuItem, stop <-chan struct{}, onClick func()) {
 func (m *menu) scanSteam(item *systray.MenuItem) {
 	defer item.Enable()
 	sum, err := m.app.ScanSteam()
-	if m.opts.Notifier != nil {
+	if n := m.started.Notifier; n != nil {
 		if err != nil {
-			m.opts.Notifier.Notice("Steam scan failed", err.Error())
+			n.Notice("Steam scan failed", err.Error())
 		} else {
-			m.opts.Notifier.Notice("Steam scan", app.FormatScanSummary(sum))
+			n.Notice("Steam scan", app.FormatScanSummary(sum))
 		}
 	}
 	m.refresh()
